@@ -195,6 +195,36 @@ img{max-width:100%;display:block}
 .loading-spinner{width:40px;height:40px;border:3px solid rgba(91,127,255,.2);border-top-color:#5b7fff;border-radius:50%;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .loading-text{color:#6b7aaa;font-size:14px}
+
+/* ====== 移动端适配 ====== */
+@media(max-width:600px){
+  .result-main{flex-direction:column;align-items:center;gap:16px}
+  .result-avatar{width:160px;height:160px}
+  .result-info-wrap{min-height:auto;padding:10px 0;width:100%}
+  .result-name{font-size:22px;text-align:center}
+  .result-en,.result-nick{text-align:center}
+  .result-type{margin:0 auto 6px}
+  .result-match{margin:4px auto 0}
+  .result-soul{margin-top:14px;padding:12px 14px 12px 36px;font-size:12px;line-height:1.6}
+  .result-soul::before{left:12px;top:7px;font-size:20px}
+  .result-soul::after{right:12px;bottom:7px;font-size:20px}
+  .result-card{padding:14px}
+  .home-inner{padding:14px 10px 20px}
+  .result-desc{font-size:13px;padding:12px}
+  .relation-card,.dimension-card{padding:12px}
+  .tab-bar{height:50px}
+  .tab-item{gap:2px}
+  .tab-label{font-size:9px}
+  .test-question{font-size:18px;padding:0 2px}
+  .test-option{font-size:14px;padding:14px 16px}
+  .test-nav-btn{max-width:140px;font-size:13px;padding:10px 14px}
+  .popup-box{max-width:320px}
+  .action-area{gap:8px;flex-direction:column}
+  .action-area .btn{width:100%;text-align:center}
+  .personality-sheet{max-width:95vw;padding:14px}
+  .record-item{flex-direction:column;align-items:flex-start;gap:8px}
+  .record-info{width:100%}
+}
 </style>
 </head>
 <body>
