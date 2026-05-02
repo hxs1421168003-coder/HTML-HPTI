@@ -13,7 +13,7 @@ img{max-width:100%;display:block}
 /* 弹窗 */
 .popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
 .popup-overlay.hidden{display:none}
-.popup-box{position:relative;width:100%;max-width:340px}
+.popup-box{position:relative;width:100%;max-width:380px}
 .popup-base{width:100%;border-radius:20px;overflow:hidden}
 .popup-btn{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#5b7fff,#8fa8ff);color:#fff;font-size:15px;font-weight:600;padding:10px 32px;border-radius:25px;border:none;cursor:pointer;letter-spacing:1px}
 
@@ -129,13 +129,13 @@ img{max-width:100%;display:block}
 .test-bar{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
 .test-bar-fill{height:100%;background:linear-gradient(90deg,#5b7fff,#a78bfa);border-radius:2px;transition:width .4s ease}
 .test-total{font-size:12px;color:#4a5578;min-width:40px;text-align:right}
-.test-question{font-size:18px;font-weight:600;color:#e8ecff;line-height:1.6;margin-bottom:24px;padding:0 4px}
-.test-options{display:flex;flex-direction:column;gap:10px}
-.test-option{padding:14px 16px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;font-size:14px;color:#b0bcd8;cursor:pointer;transition:all .2s;text-align:left;line-height:1.5}
+.test-question{font-size:20px;font-weight:600;color:#e8ecff;line-height:1.7;margin-bottom:24px;padding:0 4px;text-align:center}
+.test-options{display:flex;flex-direction:column;gap:10px;align-items:center}
+.test-option{padding:16px 20px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;font-size:15px;color:#b0bcd8;cursor:pointer;transition:all .2s;text-align:left;line-height:1.6;width:100%;max-width:600px}
 .test-option:active{transform:scale(.98)}
 .test-option.selected{border-color:#5b7fff;background:rgba(91,127,255,.15);color:#c8d4ff}
 .test-nav{display:flex;gap:10px;margin-top:20px;justify-content:center}
-.test-nav-btn{flex:1;max-width:160px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#b0bcd8;transition:all .2s;text-align:center}
+.test-nav-btn{flex:1;max-width:200px;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#b0bcd8;transition:all .2s;text-align:center}
 .test-nav-btn:active{transform:scale(.97);background:rgba(91,127,255,.12);border-color:rgba(91,127,255,.3);color:#c8d4ff}
 .test-nav-btn:disabled{opacity:.3;cursor:default;transform:none}
 
@@ -208,14 +208,11 @@ img{max-width:100%;display:block}
 <!-- 弹窗（首页弹出） -->
 <div class="popup-overlay" id="popupOverlay">
   <div class="popup-box">
-    <div id="popupContent">
-      <img class="popup-base" src="images/弹窗底图@1.5x.png" alt="开启测试" style="display:block" onerror="this.style.display='none';document.getElementById('popupFallback').style.display='flex'">
-      <div id="popupFallback" class="popup-base" style="display:none;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a3e,#2d1f5e);border-radius:20px;padding:40px 20px;text-align:center;min-height:300px">
-        <div style="font-size:48px;margin-bottom:16px">🔮</div>
-        <div style="font-size:22px;font-weight:700;letter-spacing:2px;margin-bottom:8px;background:linear-gradient(135deg,#fff,#c8d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">人格图鉴</div>
-        <div style="font-size:13px;color:#8fa8ff;margin-bottom:24px">21种人格类型测试</div>
-        <div style="font-size:14px;color:#6b7aaa;line-height:1.7;margin-bottom:32px">测一测你是哪种人格？<br>是一株植物，还是一位主人？</div>
-      </div>
+    <div id="popupContent" style="display:flex;flex-direction:column;align-items:center;justify-content:center;background:#16162a;border:1px solid rgba(255,255,255,.08);border-radius:24px;padding:50px 30px 110px;text-align:center;box-shadow:0 20px 60px rgba(0,0,0,.5)">
+      <div style="font-size:52px;margin-bottom:20px">🔮</div>
+      <div style="font-size:28px;font-weight:700;letter-spacing:3px;margin-bottom:12px;background:linear-gradient(135deg,#fff,#c8d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">人格图鉴</div>
+      <div style="font-size:14px;color:#8fa8ff;margin-bottom:16px">21种人格类型测试</div>
+      <div style="font-size:15px;color:#b0bcd8;line-height:1.9">测测你是什么人格？<br>是一株植物，还是一位主人？</div>
     </div>
     <div style="display:flex;gap:10px;margin-top:16px">
       <button onclick="skipToHome()" style="flex:1;background:rgba(255,255,255,0.1);color:#8fa8ff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:25px;border:none;cursor:pointer;letter-spacing:1px">跳过预览</button>
