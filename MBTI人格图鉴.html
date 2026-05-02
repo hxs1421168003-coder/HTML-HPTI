@@ -1,0 +1,1479 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>人格图鉴</title>
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'PingFang SC','Helvetica Neue',sans-serif;background:#0d0d14;color:#fff;min-height:100vh;overflow-x:hidden}
+img{max-width:100%;display:block}
+
+/* 弹窗 */
+.popup-overlay{position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:200;display:flex;align-items:center;justify-content:center;padding:20px}
+.popup-overlay.hidden{display:none}
+.popup-box{position:relative;width:100%;max-width:340px}
+.popup-base{width:100%;border-radius:20px;overflow:hidden}
+.popup-btn{position:absolute;bottom:18%;left:50%;transform:translateX(-50%);background:linear-gradient(135deg,#5b7fff,#8fa8ff);color:#fff;font-size:15px;font-weight:600;padding:10px 32px;border-radius:25px;border:none;cursor:pointer;letter-spacing:1px}
+
+/* 页面容器 */
+.page{position:fixed;inset:0;top:0;bottom:60px;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.page.hidden{display:none}
+
+/* 首页 */
+.home-page{background:linear-gradient(180deg,#0d0d18 0%,#13132a 100%)}
+.home-scroll{overflow-y:auto;overflow-x:hidden;height:100%}
+.home-inner{padding:20px 16px 30px;max-width:800px;margin:0 auto}
+
+/* 人格头部 */
+.result-header{padding-top:20px;margin-bottom:16px}
+.result-tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.tag{background:rgba(91,127,255,.15);color:#8fa8ff;font-size:11px;padding:3px 10px;border-radius:10px;border:1px solid rgba(91,127,255,.3)}
+.result-title{font-size:28px;font-weight:700;letter-spacing:2px;margin-bottom:4px;background:linear-gradient(135deg,#fff,#c8d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.result-subtitle{font-size:13px;color:#6b7aaa;letter-spacing:1px}
+
+/* 大卡片容器 */
+.result-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);border-radius:24px;padding:18px;margin:16px 0}
+
+/* 左图右信息 */
+.result-main{display:flex;gap:40px;align-items:stretch}
+.result-avatar-wrap{flex-shrink:0}
+.result-avatar{width:260px;height:260px;border-radius:24px;object-fit:cover;box-shadow:0 8px 32px rgba(91,127,255,.2)}
+.result-info-wrap{flex:1;min-width:0;display:flex;flex-direction:column;gap:5px;justify-content:center;padding:14px 16px;min-height:260px}
+.result-name{font-size:26px;font-weight:700;letter-spacing:2px;background:linear-gradient(135deg,#fff,#c8d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:2px}
+.result-en{font-size:13px;color:#8fa8ff;font-weight:500;margin-bottom:6px}
+.result-type{font-size:13px;color:#f472b6;background:rgba(244,114,182,.1);padding:4px 14px;border-radius:8px;display:inline-block;width:fit-content;margin-bottom:3px}
+.result-nick{font-size:13px;color:#6b7aaa;margin-bottom:6px}
+
+/* 匹配度+概率条 */
+.result-match{display:flex;align-items:center;gap:8px;margin-top:2px;padding:6px 12px;background:rgba(255,255,255,.04);border-radius:8px;border:1px solid rgba(255,255,255,.06);width:fit-content}
+.match-label{font-size:11px;color:#6b7aaa}
+.match-value{font-size:14px;font-weight:700;color:#c8d4ff}
+.match-divider{width:1px;height:12px;background:rgba(255,255,255,.1)}
+
+/* 灵魂爆点（通栏） */
+.result-soul{font-size:13px;color:#e8ecff;line-height:1.7;margin-top:24px;padding:14px 18px 14px 46px;background:linear-gradient(135deg,rgba(91,127,255,.08),rgba(167,139,250,.08));border-radius:14px;border:1px solid rgba(91,127,255,.12);font-weight:500;letter-spacing:.5px;position:relative}
+.result-soul::before{content:"\201C";position:absolute;left:16px;top:8px;font-size:28px;color:rgba(91,127,255,.2);line-height:1;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+.result-soul::after{content:"\201D";position:absolute;right:16px;bottom:8px;font-size:28px;color:rgba(91,127,255,.5);line-height:1;font-family:"PingFang SC","Microsoft YaHei",sans-serif}
+
+/* 人格简介（独立块） */
+.result-desc{padding:14px 16px;background:rgba(255,255,255,.04);border-radius:16px;border:1px solid rgba(255,255,255,.06);font-size:14px;color:#c0c8e0;line-height:1.7;margin-bottom:20px}
+
+/* 关系卡 */
+.relation-card{background:rgba(255,255,255,.04);border-radius:16px;border:1px solid rgba(255,255,255,.06);padding:16px;margin-bottom:20px}
+.card-title{font-size:12px;color:#6b7aaa;text-transform:uppercase;letter-spacing:2px;margin-bottom:12px}
+.relation-item{display:flex;align-items:flex-start;gap:10px;margin-bottom:10px}
+.relation-icon{width:28px;height:28px;border-radius:50%;background:linear-gradient(135deg,#5b7fff,#a78bfa);display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.relation-text{font-size:13px;color:#b0bcd8;line-height:1.6}
+.relation-label{color:#8fa8ff;font-size:11px;font-weight:600;margin-bottom:2px}
+
+/* 八维卡 */
+.dimension-card{background:rgba(255,255,255,.04);border-radius:16px;border:1px solid rgba(255,255,255,.06);padding:16px;margin-bottom:20px}
+/* 数字条已注释，改用雷达图
+.dim-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.dim-item{margin-bottom:4px}
+.dim-label{font-size:11px;color:#8fa8ff;margin-bottom:5px;display:flex;justify-content:space-between}
+.dim-bar{height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden}
+.dim-fill{height:100%;border-radius:3px;transition:width .6s ease}*/
+
+/* 八维雷达图 */
+.radar-container{display:flex;flex-direction:column;align-items:center;margin:10px 0}
+.radar-chart{width:220px;height:220px}
+.radar-labels{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin-top:12px}
+.radar-label{font-size:11px;color:#8fa8ff;background:rgba(91,127,255,.1);padding:3px 8px;border-radius:8px}
+
+/* 维度评分列表 */
+.dim-scores{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.dim-score-item{background:rgba(255,255,255,.03);border-radius:12px;padding:12px 14px;border:1px solid rgba(255,255,255,.05)}
+.dim-score-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.dim-score-name{font-size:13px;font-weight:600;letter-spacing:1px}
+.dim-score-val{font-size:13px;font-weight:700}
+.dim-score-val.positive{color:#5b7fff}
+.dim-score-val.negative{color:#f87171}
+.dim-score-bar{height:3px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden;margin-bottom:5px}
+.dim-score-fill{height:100%;border-radius:2px;transition:width .6s ease}
+.dim-score-title{font-size:11px;color:#8fa8ff;margin-bottom:6px;font-weight:500}
+.dim-score-text{font-size:11px;color:#b0bcd8;line-height:1.6;margin-bottom:2px}
+.dim-score-arrow{font-size:11px;color:#6b7aaa;line-height:1.5;padding-left:4px}
+
+/* 操作区 */
+.action-area{display:flex;flex-direction:row;gap:10px;margin-bottom:20px}
+.action-area .btn{flex:1}
+.btn-row{display:flex;gap:10px}
+.btn{flex:1;padding:12px;border-radius:12px;font-size:14px;font-weight:600;cursor:pointer;border:none;text-align:center;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#5b7fff,#8fa8ff);color:#fff}
+.btn-secondary{background:rgba(255,255,255,.06);color:#c0c8e0;border:1px solid rgba(255,255,255,.1)}
+.btn-outline{background:transparent;color:#8fa8ff;border:1px solid rgba(91,127,255,.4)}
+
+/* 双人格展示（和简介卡片同款） */
+.dual-result{margin-bottom:20px;padding:14px 16px;background:rgba(255,255,255,.04);border-radius:16px;border:1px solid rgba(255,255,255,.06);text-align:left;color:#c0c8e0;font-size:13px;line-height:1.6}
+.dual-label{font-size:11px;color:#8fa8ff;letter-spacing:2px;margin-bottom:6px}
+.dual-names{font-weight:500;letter-spacing:1px;color:#b0bcd8}
+.dual-score{font-size:12px;color:#6b7aaa;margin-top:4px}
+
+/* 底部导航 */
+.tab-bar{position:fixed;bottom:0;left:0;right:0;height:60px;background:rgba(13,13,22,.95);backdrop-filter:blur(20px);border-top:1px solid rgba(255,255,255,.06);display:flex;z-index:100;max-width:800px;margin:0 auto}
+.tab-item{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .1s}
+.tab-item:active{transform:scale(.95)}
+.tab-icon{width:24px;height:24px}
+.tab-label{font-size:10px;color:#4a5578}
+.tab-item.active .tab-label{color:#8fa8ff}
+
+/* 测试页 */
+.test-page{background:linear-gradient(180deg,#0d0d18 0%,#13132a 100%)}
+.test-inner{padding:20px 16px 40px;max-width:800px;margin:0 auto}
+.test-progress{display:flex;align-items:center;gap:8px;margin-bottom:24px}
+.test-num{font-size:12px;color:#6b7aaa;min-width:40px}
+.test-bar{flex:1;height:4px;background:rgba(255,255,255,.08);border-radius:2px;overflow:hidden}
+.test-bar-fill{height:100%;background:linear-gradient(90deg,#5b7fff,#a78bfa);border-radius:2px;transition:width .4s ease}
+.test-total{font-size:12px;color:#4a5578;min-width:40px;text-align:right}
+.test-question{font-size:18px;font-weight:600;color:#e8ecff;line-height:1.6;margin-bottom:24px;padding:0 4px}
+.test-options{display:flex;flex-direction:column;gap:10px}
+.test-option{padding:14px 16px;background:rgba(255,255,255,.05);border:1.5px solid rgba(255,255,255,.08);border-radius:14px;font-size:14px;color:#b0bcd8;cursor:pointer;transition:all .2s;text-align:left;line-height:1.5}
+.test-option:active{transform:scale(.98)}
+.test-option.selected{border-color:#5b7fff;background:rgba(91,127,255,.15);color:#c8d4ff}
+.test-nav{display:flex;gap:10px;margin-top:20px;justify-content:center}
+.test-nav-btn{flex:1;max-width:160px;padding:10px 16px;border-radius:12px;font-size:13px;font-weight:600;cursor:pointer;border:1px solid rgba(255,255,255,.1);background:rgba(255,255,255,.04);color:#b0bcd8;transition:all .2s;text-align:center}
+.test-nav-btn:active{transform:scale(.97);background:rgba(91,127,255,.12);border-color:rgba(91,127,255,.3);color:#c8d4ff}
+.test-nav-btn:disabled{opacity:.3;cursor:default;transform:none}
+
+/* 记录页 */
+.record-page{background:linear-gradient(180deg,#0d0d18 0%,#13132a 100%)}
+.record-inner{padding:20px 16px 30px;max-width:800px;margin:0 auto}
+.record-list{display:flex;flex-direction:column;gap:12px}
+.record-item{display:flex;align-items:center;gap:12px;padding:14px;background:rgba(255,255,255,.04);border-radius:14px;border:1px solid rgba(255,255,255,.06);cursor:pointer;transition:transform .1s}
+.record-item:active{transform:scale(.98)}
+.record-thumb{width:56px;height:56px;border-radius:12px;object-fit:cover;flex-shrink:0}
+.record-info{flex:1;min-width:0}
+.record-name{font-size:16px;font-weight:600;color:#e8ecff;margin-bottom:2px}
+.record-date{font-size:11px;color:#6b7aaa}
+.record-score{font-size:12px;color:#8fa8ff;background:rgba(91,127,255,.15);padding:2px 8px;border-radius:8px}
+.record-empty{text-align:center;padding:60px 20px;color:#4a5578}
+.record-empty-icon{font-size:48px;margin-bottom:12px}
+
+/* 图鉴页 */
+.album-page{background:linear-gradient(180deg,#0d0d18 0%,#13132a 100%)}
+.album-inner{padding:20px 16px 30px;max-width:1080px;margin:0 auto}
+.album-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.album-item{position:relative;cursor:pointer;transition:transform .2s;border-radius:16px;overflow:hidden;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06)}
+.album-item:active{transform:scale(.97)}
+.album-item:hover{transform:translateY(-2px);border-color:rgba(91,127,255,.3)}
+.album-img{width:100%;height:230px;object-fit:cover;display:block;margin-top:20px}
+.album-info{padding:8px 10px 10px}
+.album-id{font-size:10px;color:#6b7aaa;margin-bottom:2px}
+.album-cn-name{font-size:14px;font-weight:500;color:#e8ecff;margin-bottom:2px;letter-spacing:1px}
+.album-en-name{font-size:11px;color:#8fa8ff;margin-bottom:4px;font-weight:500}
+.album-type{font-size:10px;color:#f472b6;background:rgba(244,114,182,.1);padding:2px 6px;border-radius:6px;display:inline-block;margin-bottom:4px}
+.album-nick{font-size:10px;color:#6b7aaa;line-height:1.4}
+
+/* 人格详情弹窗 */
+.personality-popup{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:150;display:flex;align-items:center;justify-content:center;padding:20px}
+.personality-popup.hidden{display:none}
+.personality-sheet{width:100%;max-width:400px;max-height:85vh;background:#16162a;border-radius:16px;overflow-y:auto;padding:20px}
+.ps-top{display:flex;align-items:center;gap:12px;margin-bottom:16px}
+.ps-avatar{width:64px;height:64px;border-radius:16px;object-fit:cover}
+.ps-info{flex:1}
+.ps-name{font-size:20px;font-weight:700;letter-spacing:2px}
+.ps-nick{font-size:12px;color:#8fa8ff;margin-top:2px}
+.ps-type{font-size:12px;color:#6b7aaa;margin-top:2px}
+.ps-desc{padding:12px;background:rgba(255,255,255,.04);border-radius:12px;font-size:13px;color:#b0bcd8;line-height:1.7;margin-bottom:12px}
+.ps-relation{padding:12px;background:rgba(91,127,255,.08);border-radius:12px;font-size:13px;color:#b0bcd8;line-height:1.7;margin-bottom:12px;border:1px solid rgba(91,127,255,.2)}
+.ps-close{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#b0bcd8;padding:10px;border-radius:12px;width:100%;font-size:14px;cursor:pointer}
+
+/* 过渡动画 */
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .4s ease forwards}
+
+/* 答题结果动画 */
+.test-result-anim{animation:fadeIn .6s ease forwards}
+
+/* 加载状态 */
+.loading-overlay{position:fixed;inset:0;background:#0d0d18;z-index:300;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
+.loading-overlay.hidden{display:none}
+.loading-spinner{width:40px;height:40px;border:3px solid rgba(91,127,255,.2);border-top-color:#5b7fff;border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:#6b7aaa;font-size:14px}
+</style>
+</head>
+<body>
+
+<!-- 加载页 -->
+<div class="loading-overlay" id="loadingOverlay">
+  <div class="loading-spinner"></div>
+  <div class="loading-text">正在加载...</div>
+</div>
+
+<!-- 弹窗（首页弹出） -->
+<div class="popup-overlay" id="popupOverlay">
+  <div class="popup-box">
+    <div id="popupContent">
+      <img class="popup-base" src="images/弹窗底图@1.5x.png" alt="开启测试" style="display:block" onerror="this.style.display='none';document.getElementById('popupFallback').style.display='flex'">
+      <div id="popupFallback" class="popup-base" style="display:none;flex-direction:column;align-items:center;justify-content:center;background:linear-gradient(135deg,#1a1a3e,#2d1f5e);border-radius:20px;padding:40px 20px;text-align:center;min-height:300px">
+        <div style="font-size:48px;margin-bottom:16px">🔮</div>
+        <div style="font-size:22px;font-weight:700;letter-spacing:2px;margin-bottom:8px;background:linear-gradient(135deg,#fff,#c8d4ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent">人格图鉴</div>
+        <div style="font-size:13px;color:#8fa8ff;margin-bottom:24px">21种人格类型测试</div>
+        <div style="font-size:14px;color:#6b7aaa;line-height:1.7;margin-bottom:32px">测一测你是哪种人格？<br>看看你会爱上谁，谁会栽在你手里</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button onclick="skipToHome()" style="flex:1;background:rgba(255,255,255,0.1);color:#8fa8ff;font-size:13px;font-weight:600;padding:10px 20px;border-radius:25px;border:none;cursor:pointer;letter-spacing:1px">跳过预览</button>
+      <button class="popup-btn" onclick="startTest()" style="flex:1;padding:10px 20px">开启测试</button>
+    </div>
+  </div>
+</div>
+
+<!-- 首页 -->
+<div class="page home-page hidden" id="pageHome">
+  <div class="home-scroll">
+    <div class="home-inner">
+      <!-- ① 标签 -->
+      <div class="result-header">
+        <div class="result-tags" id="resultTags"></div>
+      </div>
+
+      <!-- ② 大卡片：左头像 + 右信息 + 下soul -->
+      <div class="result-card">
+        <div class="result-main">
+          <div class="result-avatar-wrap">
+            <img class="result-avatar" id="resultAvatar" src="" alt="">
+          </div>
+          <div class="result-info-wrap">
+            <div class="result-name" id="resultTitle"></div>
+            <div class="result-en" id="resultEn"></div>
+            <div class="result-type" id="resultType"></div>
+            <div class="result-nick" id="resultNick"></div>
+            <div class="result-match">
+              <span class="match-label">匹配度</span>
+              <span class="match-value" id="matchValue"></span>
+              <span class="match-divider"></span>
+              <span class="match-label">概率</span>
+              <span class="match-value" id="probValue"></span>
+            </div>
+          </div>
+        </div>
+        <!-- 灵魂爆点（通栏） -->
+        <div class="result-soul" id="resultSoul"></div>
+      </div>
+
+      <!-- ③ 操作按钮 -->
+      <div class="action-area">
+        <button class="btn btn-outline" onclick="retest()">🔄 重新测试</button>
+        <button class="btn btn-primary" onclick="shareCard()">📸 分享图片</button>
+      </div>
+
+      <!-- ④ 人格简介 -->
+      <div class="result-desc" id="resultDesc"></div>
+
+      <!-- ⑤ 双人格介绍 -->
+      <div class="dual-result hidden" id="dualResult">
+        <div class="dual-names" id="dualNames"></div>
+      </div>
+
+      <!-- ⑥ 关系适配 -->
+      <div class="relation-card">
+        <div class="card-title">关系适配</div>
+        <div class="relation-item">
+          <div class="relation-icon">💕</div>
+          <div><div class="relation-label">你会爱上</div><div class="relation-text" id="loveText"></div></div>
+        </div>
+        <div class="relation-item">
+          <div class="relation-icon">🎯</div>
+          <div><div class="relation-label">你会被吸引</div><div class="relation-text" id="trapText"></div></div>
+        </div>
+      </div>
+
+      <!-- ⑥ 八维雷达图 -->
+      <div class="dimension-card">
+        <div class="card-title">八维分析</div>
+        <div class="dim-grid" id="dimGrid"></div>
+      </div>
+
+      <!-- ⑦ 维度评分 -->
+      <div class="dimension-card">
+        <div class="card-title">维度评分</div>
+        <div class="dim-scores" id="dimScores"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 测试页 -->
+<div class="page test-page hidden" id="pageTest">
+  <div class="test-inner">
+    <div class="test-progress">
+      <div class="test-num" id="testNum">1/30</div>
+      <div class="test-bar"><div class="test-bar-fill" id="testBarFill"></div></div>
+      <div class="test-total" id="testTotal">30</div>
+    </div>
+    <div class="test-question" id="testQuestion"></div>
+    <div class="test-options" id="testOptions"></div>
+    <div class="test-nav">
+      <button class="test-nav-btn" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+      <button class="test-nav-btn" id="nextBtn" onclick="nextQuestion()">下一题 →</button>
+    </div>
+  </div>
+</div>
+
+<!-- 记录页 -->
+<div class="page record-page hidden" id="pageRecord">
+  <div class="record-inner">
+    <div style="font-size:18px;font-weight:700;margin-bottom:16px;letter-spacing:2px">测试记录</div>
+    <div class="record-list" id="recordList"></div>
+  </div>
+</div>
+
+<!-- 图鉴页 -->
+<div class="page album-page hidden" id="pageAlbum">
+  <div class="album-inner">
+    <div style="font-size:18px;font-weight:700;margin-bottom:16px;letter-spacing:2px">人格图鉴</div>
+    <div class="album-grid" id="albumGrid"></div>
+  </div>
+</div>
+
+<!-- 人格详情弹窗 -->
+<div class="personality-popup hidden" id="personalityPopup">
+  <div class="personality-sheet" id="personalitySheet">
+    <div class="ps-top">
+      <img class="ps-avatar" id="psAvatar" src="" alt="">
+      <div class="ps-info">
+        <div class="ps-name" id="psName"></div>
+        <div class="ps-nick" id="psNick"></div>
+        <div class="ps-type" id="psType"></div>
+      </div>
+    </div>
+    <div class="ps-desc" id="psDesc"></div>
+    <div class="ps-relation" id="psRelation"></div>
+    <button class="ps-close" onclick="closePersonalityPopup()">关闭</button>
+  </div>
+</div>
+
+<!-- 底部导航 -->
+<div class="tab-bar" id="tabBar">
+  <div class="tab-item active" data-tab="home" onclick="switchTab('home')">
+    <img class="tab-icon" src="images/ui/主页.png" alt="首页">
+    <div class="tab-label">首页</div>
+  </div>
+  <div class="tab-item" data-tab="record" onclick="switchTab('record')">
+    <img class="tab-icon" src="images/ui/记录.png" alt="记录">
+    <div class="tab-label">记录</div>
+  </div>
+  <div class="tab-item" data-tab="album" onclick="switchTab('album')">
+    <img class="tab-icon" src="images/ui/图鉴.png" alt="图鉴">
+    <div class="tab-label">图鉴</div>
+  </div>
+</div>
+
+<script>
+// ========== 数据 ==========
+const PERSONALITIES = [
+  {id:1, name:"执事", en:"Attendant", type:"过度服务型", nick:"先天打工圣体",
+   desc:"连灵魂都在主动接单，别人的麻烦，自己的KPI。你不是被需要，是已经默认自己必须在场。但你也该试试，有些事不接单也不会崩。",
+   soul:"你总是在成全别人的圆满，别忘了给自己留一份不被打扰的任性。",
+   love:"你会爱上能接住你所有细节的人，最好不嫌你麻烦；容易栽在你手里的是习惯被照顾却不自知的人。",
+   core:"回声感（你太会接住别人）, 引力值（你很容易深度投入）",
+   dim:{core:["回声感","引力值"],aux:["透光度"],low:["边界线"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["服务型","讨好型","细节控","全能管家"],
+   img:"执事.png"},
+  {id:2, name:"小姐/少爷", en:"Heir", type:"被爱特权型", nick:"天生贵物",
+   desc:"生来就在VIP包厢，连情绪都有免死金牌。你习惯被偏爱，也习惯不解释。只是偶尔也会怀疑，有人爱的是你，还是你的光环。",
+   soul:"被爱是你的天赋，但学会如何去爱一个平凡的人，是你更动人的勋章。",
+   love:"你会爱上不需要你证明自己的人；容易栽在你手里的是一旦被你偏爱就离不开的人。",
+   core:"边界线（你自带边界，从不迁就）, 原点感（你始终是中心）",
+   dim:{core:["边界线","原点感"],aux:["风向感"],low:["回声感"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["被爱型","高自尊","大小姐驾到","本少爷登场"],
+   img:"小姐_少爷.png"},
+  {id:3, name:"魔法猫咪", en:"Mystic Cat", type:"高敏疏离型", nick:"你懂猫吗",
+   desc:"爪子收着尖刺蹭你，眼神里却写着『保持安全距离』。你可以很亲近，但不会真正靠近。人，该给我收集新玩具了。",
+   soul:"你的疏离不是冷漠，只是为了保护内心那块还没长大的自留地。",
+   love:"你会爱上让你安全又抓不住的人；容易栽在你手里的是越靠近越想读懂你的人。",
+   core:"回声感（你太敏锐，能感知一切）, 边界线（你守得住边界）",
+   dim:{core:["回声感","边界线"],aux:["引力值"],low:["透光度"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["高敏型","反向驯服","躲猫猫大师","慢热型"],
+   img:"魔法猫咪.png"},
+  {id:4, name:"大狗狗是狼", en:"Wolf Dog", type:"热恋粘人型", nick:"自我攻略型",
+   desc:"用温顺把猎物圈进领地，占有欲藏在摇尾巴里。你爱的时候很满，也很用力。但你自己也分不清，是爱，还是不想失去。",
+   soul:"你的粘人不是软弱，是你在这个冷冰冰的世界里，最勇敢的赤诚。",
+   love:"你会爱上能回应你热烈的人；容易栽在你手里的是慢热却被你拖进节奏的人。",
+   core:"引力值（一旦爱就全情投入）, 透光度（你表达很直接）",
+   dim:{core:["引力值","透光度"],aux:["潮汐线"],low:["边界线"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["粘人型","占有欲","金毛or边牧","恋爱脑"],
+   img:"大狗狗是狼.png"},
+  {id:5, name:"剧作家", en:"Playwright", type:"恋爱脑投射型", nick:"自导自演",
+   desc:"把路人写进剧本，演完发现只有自己入戏了。你擅长赋予关系意义，也擅长放大情绪。只是现实，很少按你的剧本走。",
+   soul:"你眼里的浪漫或许很傻，但那是你对抗平庸生活时，唯一的英雄主义。",
+   love:"你会爱上你想象中的那个人；容易栽在你手里的是被你写进剧情却不自知的人。",
+   core:"引力值（爱起来就很投入）, 取景方式（你擅长脑补画面）",
+   dim:{core:["引力值","取景方式"],aux:["透光度"],low:["原点感"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["脑补型","自带滤镜","浪漫型","理想主义"],
+   img:"剧作家.png"},
+  {id:6, name:"旅行青蛙", en:"Drifter Frog", type:"间歇性消失型", nick:"间歇性人间蒸发",
+   desc:"出现是随机掉落，消失才是常驻状态。你不是冷淡，只是随时准备离开。没有人真正留住你，包括你自己。",
+   soul:"你不是在逃避，你只是在寻找一个能让你真正放下行李的灵魂终点。",
+   love:"你会爱上来去自由却偶尔回头的人；容易栽在你手里的是以为能等到你的人。",
+   core:"边界线（你总保持距离）, 原点感（你不依附任何人）",
+   dim:{core:["边界线","原点感"],aux:["潮汐线"],low:["引力值"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["消失型","独立型","自由型","正在加载中…"],
+   img:"旅行青蛙.png"},
+  {id:7, name:"豌豆公主", en:"Sensitive Princess", type:"极度敏感型", nick:"情绪纳米雷达",
+   desc:"隔着十层床垫，也能摸到空气里的敷衍。你太会感受细节，也太容易被细节伤到。别人没注意的，你已经反复确认了一百遍。",
+   soul:"你的敏感不是矫情，是你对这世界最细腻的采样，只是辛苦了心跳。",
+   love:"你会爱上细节对齐的人；容易栽在你手里的是忽冷忽热却被你反复确认的人。",
+   core:"回声感（你能感知最细微的变化）, 潮汐线（情绪波动大）",
+   dim:{core:["回声感","潮汐线"],aux:["引力值"],low:["边界线"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["敏感型","细节控","轻拿轻放","易碎品"],
+   img:"豌豆公主.png"},
+  {id:8, name:"僧人", en:"Monk", type:"低欲望抽离型", nick:"摸鱼者（木鱼版）",
+   desc:"无欲无求到，连剧情线都触发不了。你不争、不抢、不卷，也不期待。只是偶尔，你也会怀疑自己是不是活得太轻。",
+   soul:"你看淡一切不是因为无情，而是你深知唯有轻盈，才能走得更远。",
+   love:"你会爱上不打扰你世界的人；容易栽在你手里的是试图走进你的人。",
+   core:"边界线（你与世界保持距离）, 原点感（你自成一个世界）",
+   dim:{core:["边界线","原点感"],aux:["潮汐线"],low:["引力值"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["佛系型","低欲望","四大皆空","躺平型"],
+   img:"僧人.png"},
+  {id:9, name:"道长", en:"Seer", type:"看破但不说破型", nick:"监控摄像头",
+   desc:"心里门儿清，嘴比城门还严，主打一个看破不说破。你看得很透，但不参与。很多关系，在你眼里早就有结局了。",
+   soul:"看破不说破是你的温柔，你把所有答案都留给了时间的慈悲。",
+   love:"你会爱上看懂你但不拆穿你的人；容易栽在你手里的是以为自己很聪明的人。",
+   core:"取景方式（你总能看到全貌）, 原点感（你很清楚自己是谁）",
+   dim:{core:["取景方式","原点感"],aux:["边界线"],low:["透光度"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["洞察型","冷静型","豁达感","看透型"],
+   img:"道长.png"},
+  {id:10, name:"操盘手", en:"Strategist", type:"关系控制型", nick:"关系战略家",
+   desc:"不动声色把牌摆好，等你自己走进他的棋盘。你不一定说，但你一定在算。你不是控制一切，是不允许失控。",
+   soul:"你算了一辈子局势，其实只是想为自己在意的人，算出一个稳稳的未来。",
+   love:"你会爱上能与你博弈的人；容易栽在你手里的是后知后觉进入你节奏的人。",
+   core:"风向感（你习惯掌控节奏）, 边界线（你从不越过自己的线）",
+   dim:{core:["风向感","边界线"],aux:["取景方式"],low:["回声感"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["控制型","战略型","极致博弈","主导型"],
+   img:"操盘手.png"},
+  {id:11, name:"主人", en:"Dominator", type:"掌控+支配型", nick:"自带压迫感 buff",
+   desc:"气场自带边界线，不用说话也能定住全场节奏。你不需要讨好，也不需要解释。只是很少有人敢真正靠近你。",
+   soul:"你习惯了掌控一切，却也渴望在某个瞬间，能有一个肩膀让你彻底放松。",
+   love:"你会爱上不需要你解释的人；容易栽在你手里的是试图挑战你边界的人。",
+   core:"风向感（你永远掌控节奏）, 边界线（你的边界坚不可摧）",
+   dim:{core:["风向感","边界线"],aux:["原点感"],low:["回声感"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["支配型","绝对领域","强势型","主导型"],
+   img:"主人.png"},
+  {id:12, name:"演员", en:"Shapeshifter", type:"自我扮演型", nick:"赛博变色龙",
+   desc:"每一种人设都演得滴水不漏，唯独没有自己。你适配所有人，却很少被看见。连你自己，有时都不知道哪一面才是真的。",
+   soul:"你演活了世间百态，其实是想在万千角色里，拼凑出那个失散的自己。",
+   love:"你会爱上能陪你演下去的人；容易栽在你手里的是当真看待你每一面的观众。",
+   core:"透光度（你表达很多面）, 原点感（你总在切换人设）",
+   dim:{core:["透光度","原点感"],aux:["回声感"],low:["边界线"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["扮演型","变色龙","面具型","高社交型"],
+   img:"演员.png"},
+  {id:13, name:"信徒", en:"Believer", type:"绝对投入型", nick:"孤注一掷赌徒",
+   desc:"把真心当筹码全押，输了也不肯离场。你一旦认定，就很难回头。哪怕知道不对，也还是想再试一次。",
+   soul:"你那种不顾一切的投入，是这世间最稀缺的纯真，值得被温柔相待。",
+   love:"你会爱上你愿意全押的人；容易栽在你手里的是被你坚定选择的人。",
+   core:"引力值（全情投入）, 回声感（你太能感知对方）",
+   dim:{core:["引力值","回声感"],aux:["潮汐线"],low:["边界线"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["ALL IN","专一型","深情型","纯爱"],
+   img:"信徒.png"},
+  {id:14, name:"裁判", en:"Judge", type:"对错评判型", nick:"正义委员会",
+   desc:"眼里揉不得沙子，自带是非标尺，黑白分明。你不是难相处，是太清楚什么该发生。但世界，很少按规则运行。",
+   soul:"你坚守对错，是因为你比任何人都更渴望一个公允且清朗的世界。",
+   love:"你会爱上逻辑清晰的人；容易栽在你手里的是情绪先行却被你评判的人。",
+   core:"取景方式（你判断基于逻辑）, 边界线（你有清晰底线）",
+   dim:{core:["取景方式","边界线"],aux:["原点感"],low:["潮汐线"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["正义型","评判型","原则型","道德制高点"],
+   img:"裁判.png"},
+  {id:15, name:"404", en:"Ghosted One", type:"关键消失型", nick:"关键时刻 404 Not Found",
+   desc:"平时在线，一到责任和真心时刻，页面直接失效。你可以在场，但不会承担。关键时刻，你比谁都快下线。",
+   soul:"你习惯在关键时刻消失，其实是怕自己不够好，会弄坏了这份期待。",
+   love:"你会爱上不逼你出现的人；容易栽在你手里的是关键时刻还在等你的人。",
+   core:"边界线（你保持距离不被绑定）, 原点感（你始终是自己的中心）",
+   dim:{core:["边界线","原点感"],aux:["潮汐线"],low:["引力值"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["逃避型","消失型","关键时刻掉线型","404"],
+   img:"404.png"},
+  {id:16, name:"魅魔", en:"Enchanter", type:"吸引操控型", nick:"多巴胺制造者",
+   desc:"你不需要用力，就有人靠近。但你很清楚，吸引和停留不是一回事。但是不知道，我的身材很曼妙。",
+   soul:"你在人群里发光，其实只是想确认，即使在黑暗中也不会被世界弄丢。",
+   love:"你会爱上能被你吸引却不失控的人；容易栽在你手里的是越清醒越陷进去的人。",
+   core:"透光度（你很会释放信号）, 引力值（你让人无法抗拒）",
+   dim:{core:["透光度","引力值"],aux:["回声感"],low:["边界线"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["吸引型","魅力型","暧昧型","曼妙型"],
+   img:"魅魔.png"},
+  {id:17, name:"NPC", en:"NPC", type:"被动触发型", nick:"待机用户",
+   desc:"没人触发剧情，就永远停在原地循环。你不争主线，也不抢镜头。生活发生着，但好像不完全属于你。",
+   soul:"你不主动，是因为你在等一个不需要任何台词，就能懂你的人。",
+   love:"你会爱上主动触发你的人；容易栽在你手里的是习惯围着你转的人。",
+   core:"边界线（你被边界困住）, 潮汐线（你情绪变化不大）",
+   dim:{core:["边界线","潮汐线"],aux:["原点感"],low:["透光度"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["被动型","待机型","无感型","路人型"],
+   img:"NPC.png"},
+  {id:18, name:"植物", en:"Self-Healer", type:"静默自愈型", nick:"静默光合作用",
+   desc:"风雨来了不吵不闹，自己扎根，自己慢慢回血。你恢复能力很强，也习惯独自消化。只是没人知道，你其实也会枯萎。",
+   soul:"你安静自愈的样子很美，但如果累了，你可以枯萎一下，没人会怪你。",
+   love:"你会爱上不打扰却稳定存在的人；容易栽在你手里的是试图改变你节奏的人。",
+   core:"潮汐线（你情绪稳定如植物）, 原点感（你始终是自己）",
+   dim:{core:["潮汐线","原点感"],aux:["边界线"],low:["透光度"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["自愈型","静默生长","光合作用","韧性型"],
+   img:"植物.png"},
+  {id:19, name:"石头人", en:"Stonewall", type:"高钝感力型", nick:"钝感力天花板",
+   desc:"因为怕痛就全点防御力了。情绪雷达常年休眠，刀砍过来都得先砸出火花。你不容易受伤，也不容易被打动。",
+   soul:"你修筑了高高的围墙，是为了保护里面那个依然对爱有期待的小孩。",
+   love:"你会爱上情绪不复杂的人；容易栽在你手里的是想走近你却被你弹开的的人。",
+   core:"边界线（你壁垒坚不可摧）, 潮汐线（情绪极度稳定）",
+   dim:{core:["边界线","潮汐线"],aux:["原点感"],low:["回声感"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["钝感型","防火墙型","稳定型","不易伤型"],
+   img:"石头人.png"},
+  {id:20, name:"闻鲜花冠军", en:"Flower Rusher", type:"极速速通型", nick:"急急国王",
+   desc:"开服三天全图鉴的你，总是急着要结果，过程反而没那么重要。快速拿到结果才是你唯一的目标。",
+   soul:"你跑得那么快，是想替那个曾经委屈的自己，抢回一点错过的光阴。",
+   love:"你会爱上能跟上你节奏的人；容易栽在你手里的是被你带着跑的人。",
+   core:"风向感（你永远在赶进度）, 透光度（你表达很直接）",
+   dim:{core:["风向感","透光度"],aux:["原点感"],low:["潮汐线"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["速通型","我已急哭","结果导向型","高效型"],
+   img:"闻鲜花冠军.png"},
+  {id:21, name:"观察员", en:"Observer", type:"低参与旁观型", nick:"弹幕观看者",
+   desc:"你在场，但不参与。看着所有人的剧情，自己永远是观众。不是不想加入，是看太久已经不知道怎么进场。",
+   soul:"你看透了所有故事，其实是在等一个能让你心甘情愿入场的结局。",
+   love:"你会爱上不需要你参与的人；容易栽在你手里的是想拉你进场的人。",
+   core:"取景方式（你总能看到全貌）, 透光度（你表达但不介入）",
+   dim:{core:["取景方式","透光度"],aux:["边界线"],low:["引力值"]},
+   formula:{core:2,aux:1,conflict:1},
+   tags:["上帝视角","低饱和","观察型","纪录片导演"],
+   img:"观察员.png"}
+];
+
+const QUESTIONS = [
+  {q:"朋友突然三小时没回你消息，你第一反应是：",opts:["他是不是出事了","他是不是不想理我了","你不回，那我也不回了","没什么大不了的"],scores:[{G:3},{G:1},{G:-1},{G:-3}]},
+  {q:"关系开始变冷时，你更像：",opts:["疯狂补救","开始观察问题","等对方主动","直接撤退"],scores:[{G:3},{G:1},{G:-1},{G:-3}]},
+  {q:"如果一个人突然从你的生活里消失：",opts:["任何人都不可以从我的生命里离开","一场雨后，将会是持续良久的潮湿","太阳总会升起","一切都是命运的安排"],scores:[{G:3,H:1},{G:1},{G:-1},{G:-3,T:-1}]},
+  {q:"别人一句“你是不是不高兴”，你会：",opts:["我是不是看起来状态很差？","她到底发现什么了？","对方想多了吧","没有内耗的义务"],scores:[{T:3},{T:1},{T:-1},{T:-3}]},
+  {q:"你更容易因为哪种事失眠：",opts:["今天她那么说是不是对我有意见？","我跟她还是朋友吗？","提前焦虑提前吃屎","倒头就睡，晚安世界"],scores:[{T:3},{T:1},{T:-1},{T:-3,G:-1}]},
+  {q:"看到别人突然冷淡，你通常：",opts:["立刻感觉到不对","开始猜原因","观察一下再说","没太大感觉"],scores:[{T:3},{T:1},{T:-1},{T:-3}]},
+  {q:"在一个群聊里，你通常：",opts:["能感觉谁其实不开心","大概能察觉气氛","偶尔注意到","只看自己想说什么"],scores:[{H:3},{H:1},{H:-1},{H:-3}]},
+  {q:"朋友嘴上说没事，但状态明显不对时：",opts:["她怎么了？","她可能怎么了？","她没事吧？","能有什么事？"],scores:[{H:3},{H:1},{H:-1},{H:-3}]},
+  {q:"看电影时，你更容易：",opts:["代入角色崩溃","跟着情绪走","偶尔共鸣","完全旁观"],scores:[{H:3},{H:1},{H:-1},{H:-3}]},
+  {q:"如果计划突然被打乱，你通常：",opts:["会立刻重新安排","短暂不舒服","还能接受","无所谓"],scores:[{F:3},{F:1},{F:-1},{F:-3}]},
+  {q:"关系里最让你难受的是：",opts:["失去主动权","事情超出预期","没人给明确答案","都还好"],scores:[{F:3},{F:1},{F:-1},{F:-3}]},
+  {q:"和别人聊天时，你更喜欢：",opts:["掌控节奏","有来有回","随缘聊天","别人主导"],scores:[{F:3},{F:1},{F:-1},{F:-3}]},
+  {q:"别人问“你最近怎么样”，你通常：",opts:["真话全说","说一部分","挑能说的说","自动进入官方发言"],scores:[{L:3},{L:1},{L:-1},{L:-3}]},
+  {q:"难过的时候，你更可能：",opts:["立刻表达","找熟人聊","自己消化","装没事"],scores:[{L:3},{L:1},{L:-1},{L:-3}]},
+  {q:"朋友圈发动态时，你更像：",opts:["真实记录生活","发疯发癫发狂","记录美好生活","精修九宫格"],scores:[{L:3},{L:1,T:2},{L:-1},{L:-3}]},
+  {q:"看到情侣吵架，你第一反应是：",opts:["谁的问题更大","他们关系模式有问题","先看情绪","纯吃瓜"],scores:[{C:3},{C:1},{C:-1},{C:-3}]},
+  {q:"别人做出奇怪行为时，你更容易：",opts:["分析背后逻辑","猜原因","凭感觉理解","懒得理解"],scores:[{C:3},{C:1},{C:-1},{C:-3}]},
+  {q:"听别人讲故事，你更关注：",opts:["为什么会这样","事件经过","情绪体验","有没有结局"],scores:[{C:3},{C:1},{C:-1},{C:-3}]},
+  {q:"如果有人否定你，你通常：",opts:["不会轻易动摇","会思考一下","容易怀疑自己","会反复内耗"],scores:[{S:3},{S:1},{S:-1},{S:-3}]},
+  {q:"当关系不顺时，你会：",opts:["先稳定自己","调整一下情绪","开始怀疑自己","彻底失控"],scores:[{S:3},{S:1},{S:-1},{S:-3}]},
+  {q:"你觉得自己：",opts:["很知道自己是谁","大致明确","偶尔迷失","经常被环境改变"],scores:[{S:3},{S:1},{S:-1},{S:-3}]},
+  {q:"别人突然开始越界（翻你手机/问隐私）时，你会：",opts:["立刻拒绝","委婉提醒","有点不舒服但忍了","不好意思拒绝"],scores:[{B:3},{B:1},{B:-1},{B:-3,s:-1}]},
+  {q:"朋友总是临时改变计划，你会：",opts:["直接表达不满","默默记住","忍耐一下","配合就好"],scores:[{B:3},{B:1},{B:-1},{B:-3}]},
+  {q:"别人要求你帮忙，但你其实不想时：",opts:["直接拒绝","找理由推掉","勉强答应","答应后偷偷崩溃"],scores:[{B:3},{B:1},{B:-1},{B:-3}]},
+  {q:"你最心爱、全球限量、攒了三年钱买到的手办被亲戚熊孩子砸碎，还对你做鬼脸。这一刻你：",opts:["物理超度，尖叫让我兴奋","撕心裂肺、嚎啕大哭、满地打滚","等熊孩子走后默默流泪","立刻拿计算机清算损失"],scores:[{F:3},{F:1},{C:-1},{C:+3}]},
+  {q:"如果你发现暗恋对象每天给你发的深情长文其实全是用AI生成的，你甚至能看出用的哪个版本模型，你会：",opts:["复制那话填进AI：给我生成更深情更真挚的版本","有这份心太好了，愿意为我刻意去问AI不是爱是什么","发给朋友赌五块钱：你猜这是不是用AI写的","感觉自己没被尊重、被重视，立刻分手拉黑"],scores:[{C:3},{C:1},{C:-1},{C:-3}]},
+  {q:"以下穿越你最想进哪一组？",opts:["甄嬛传/福尔摩斯","洛克王国/哈利波特","复仇者联盟/海贼王","原神启动"],scores:[{C:3},{C:1},{C:-1},{C:-3}]},
+  {q:"如果你入坑一个游戏/角色：",opts:["简直是我老婆/老公，选","长得跟我太像了，选","随便选","看强度选"],scores:[{G:3},{G:1},{G:-1},{G:-3}]},
+  {q:"如果你可以在这个世界完全匿名发言，开启身份证隐匿术：",opts:["我要法这个世界！！！","窥屏……","张元英/柳智敏 五女一","永久开启，彻底闭世"],scores:[{F:3},{G:2},{L:3},{H:3}]},
+  {q:"在不同社交环境（现实/游戏/网络）：",opts:["始终是同一个自己","略微调整","变化明显","完全像不同的人"],scores:[{S:3},{S:1},{S:-1},{S:-3}]},
+  {q:"你在一个全是陌生人的尴尬饭局上，大家都在进行社交寒暄。你突然感到一阵强烈的生理性不适，这一刻你最想做的是：",opts:["突然猛拍桌子一声大喝：不吃饭都滚出去我吃！","装死，等待被抬走","再也不想出门了","不会不适，最喜欢没有人认识我的场合"],scores:[{B:3,T:1},{B:1},{B:-1},{B:-3}]},
+  {q:"如果另一半怀疑你出轨：",opts:["我是开放主义者","绝对忠诚,不可能出轨","有诈，肯定是自己出轨了才倒打一耙","失望，沉默，离去"],scores:[{H:-3},{G:3},{C:1},{H:3}]},
+  {q:"你有没有一边在聊天，一边在想“其实可以不回”：",opts:["经常这样","偶尔这样","很少这样","从不这样"],scores:[{B:4},{B:1},{B:-1},{B:-3}]},
+  {q:"当别人越来越靠近你时，你内心更接近：",opts:["想后退甚至消失","有点不适但还能接受","习惯这种靠近","甚至希望更近"],scores:[{B:4},{B:1},{B:-1},{B:-3}]},
+  {q:"当别人依赖你：",opts:["主动接住","适度回应","保持距离","逐渐减少"],scores:[{H:3},{H:1},{H:-1},{H:-3}]},
+  {q:"关系像流动时：",opts:["引导方向","顺势而行","减少干预","随时断开"],scores:[{F:3},{F:1},{F:-1},{F:-3}]},
+  {q:"你有没有把一段关系在脑子里提前“演完结局”：",opts:["经常完整演完","偶尔会想","很少这样","几乎不会"],scores:[{C:3},{C:1},{C:-1},{C:-3}]},
+  {q:"如果一段关系一直很稳定但没有波动，你会：",opts:["开始觉得无聊","保持现状","逐渐降温","直接退出"],scores:[{F:3},{F:1},{F:-1},{F:-3}]}
+];
+
+const DIM_NAMES = {
+  F:"风向感",T:"潮汐线",H:"回声感",G:"引力值",
+  L:"透光度",C:"取景方式",S:"原点感",B:"边界线"
+};
+const DIM_COLORS = {
+  F:"#5b7fff",T:"#a78bfa",H:"#f472b6",G:"#fb923c",
+  L:"#34d399",C:"#fbbf24",S:"#22d3ee",B:"#f87171"
+};
+const DIM_SHORT_NAMES = {
+  F:"主导",T:"情绪",H:"感知",G:"依恋",
+  L:"表达",C:"理性",S:"自我",B:"边界"
+};
+const DIM_TEXT = {
+  F: {
+    高: "你身上自带一种'控场'的直觉。如果一件事没人管，你会下意识地接过来。比起随波逐流，你更喜欢把方向盘握在自己手里。",
+    中: "你对掌控权挺佛系的。需要你带头时你也不虚，但如果有人能安排得明明白白，你也乐得落个清闲。你在主导和配合间切换得很丝滑。",
+    低: "你更习惯坐在副驾驶位上看风景。比起费心去推别人，你更愿意先看清楚局势。不争不抢，是你对世界的温和抵抗。"
+  },
+  T: {
+    高: "你的心上有无数个细小的采样器。空气里的微小变化、别人眼神里的深意，你都能瞬间捕捉。这种细腻让你丰富，但也偶尔让你疲惫。",
+    中: "你的感知力恰到好处。能敏锐地察觉美好，也能在嘈杂里保持安定。你既不迟钝，也不会因为想太多而陷入内耗。",
+    低: "你的情绪系统自带“降噪功能”。外面的风浪再大，到了你这儿往往能被过滤成微波。这种定力，是很多人羡慕不来的。"
+  },
+  H: {
+    高: "你总是不自觉地替别人穿上鞋走两步。别人还没开口，你可能已经感受到了他们的难处。这种体恤，是你灵魂里最柔软的光。",
+    中: "你有同理心，但也有理性的屏障。你能理解别人的不容易，但不会让自己被对方的情绪淹没。这种“清醒的温柔”，很有力量。",
+    低: "你更习惯看事实而非看情绪。不是冷漠，只是你觉得'解决问题'才是对他人的真正尊重。你有一颗直来直去的真心。"
+  },
+  G: {
+    高: "你在关系里是个“ALL IN 玩家”。一旦认定了某段关系，就会认认真真地往里填东西。你的爱和信任，都是有重量、有厚度的。",
+    中: "你在亲密与独立之间留了一道走廊。你愿意分享生活，但也需要保留一点自我的领地。这种“可调节”的距离，让你最舒服。",
+    低: "你更像是一颗自给自足的星。社交对你来说是点缀，而非必需品。你习惯了独立行走，不轻易让自己成为谁的附属品。"
+  },
+  L: {
+    高: "你是个藏不住话的人。你的喜怒哀乐都写在脸上、挂在嘴边。这种直球式的沟通，让周围的人觉得你透明又坦荡。",
+    中: "你挺会看场合说话的。该直白时绝不绕弯，该收敛时也懂得分寸。你的每一次开口，都是经过大脑筛选后的体面。",
+    低: "你的内心戏远比说出来的精彩。很多时候你选择沉默，不是因为没想法，而是觉得有些情绪，自己消化掉反而更有质感。"
+  },
+  C: {
+    高: "你的大脑里装了一台高精密分析仪。凡事习惯先找逻辑、再看因果。你更相信那些推导得出的结论，那让你感到踏实。",
+    中: "你是理性与直觉的混血儿。该分析时你很硬核，该凭感觉时你也很敢走。这种平衡，让你在各种局里都能游刃有余。",
+    低: "你更愿意听从内心的'第六感'。很多决定并不是算出来的，而是感觉到“就是它了”。你更愿意相信生命里的那些灵光一现。"
+  },
+  S: {
+    高: "你对自己到底是谁，心里清清楚楚。外界的评价像风吹过山岗，山岗始终在那儿。这种稳固的自我，是你最硬的底牌。",
+    中: "你的自我会随着环境做一点'微调'。这不是迷失，而是一种社会化的智慧。你能在保持底线的同时，让自己变得更圆润。",
+    低: "你像是一面流动的镜子，在不同的人眼里映射出不同的自己。你一直在探索和重塑，虽然偶尔迷茫，但这种可能性也很迷人。"
+  },
+  B: {
+    高: "你的边界感像是一道红外线，清晰且不容冒犯。你很清楚哪里该止步，也懂得保护自己的领地。这种清爽，让你活得很有尊严。",
+    中: "你的边界是弹性的。面对信任的人，你可以全然打开；面对陌生人，你会拉起围栏。这种灵活，是你保护自己的方式。",
+    低: "你是个天生的'模糊地带'爱好者。你喜欢那种不分你我的融合感，比起防备，你更倾向于靠近。你习惯用温暖去消融界限。"
+  }
+};
+
+const IMG_BASE = "images/人格插画/";
+
+// 隐藏池配置
+const HIDDEN_POOL = {
+  "执事":{"pool":["404","NPC","植物"],"texts":["你习惯为所有人兜底但你也想有一天彻底下线","你一直在回应别人但很少有人真正回应你","你总在付出但你更习惯独自恢复"]},
+  "小姐/少爷":{"pool":["信徒","魅魔","演员"],"texts":["你习惯被爱但一旦动心你会全押","你被偏爱但你也在无形中掌控吸引","你不需要讨好但你很会维持人设"]},
+  "魔法猫咪":{"pool":["豌豆公主","演员","观察员"],"texts":["你看起来冷静但情绪极其细腻","你能靠近别人但不会暴露真实自己","你在关系里始终留一层距离"]},
+  "大狗狗是狼":{"pool":["操盘手","信徒","魅魔"],"texts":["你在爱但也在控制走向","你越投入越容易失控","你靠近别人也让别人离不开你"]},
+  "剧作家":{"pool":["信徒","豌豆公主","演员"],"texts":["你写关系但你也会信进去","你放大情绪也被情绪困住","你在表达但也在表演"]},
+  "旅行青蛙":{"pool":["执事","404","植物"],"texts":["你离开但也曾认真留下","你不是冷淡只是习惯消失","你远离关系但自己慢慢恢复"]},
+  "豌豆公主":{"pool":["石头人","魔法猫咪","信徒"],"texts":["你太敏感所以渴望麻木","你感知强但保持距离","你很容易投入关系"]},
+  "僧人":{"pool":["信徒","道长","植物"],"texts":["你放下但曾执着","你看淡但其实看得很清","你抽离但仍在慢慢修复"]},
+  "道长":{"pool":["演员","操盘手","观察员"],"texts":["你看破但也在配合演","你不参与但你一直在判断","你更多是在旁观"]},
+  "操盘手":{"pool":["信徒","魅魔","道长"],"texts":["你能算但也会动心","你控制局面也控制吸引","你清醒到不轻易参与"]},
+  "主人":{"pool":["豌豆公主","魅魔","操盘手"],"texts":["你控制一切但控制不住情绪","你不主动但吸引力很强","你主导但也在防失控"]},
+  "演员":{"pool":["石头人","魔法猫咪","404"],"texts":["你在演但没人真正碰到你","你靠近但保持真实距离","你可以消失不留下痕迹"]},
+  "信徒":{"pool":["操盘手","404","剧作家"],"texts":["你投入但受伤后会计算","你依赖但也会直接消失","你相信关系也会幻想关系"]},
+  "裁判":{"pool":["豌豆公主","道长","石头人"],"texts":["你理性但情绪在翻涌","你判断但不一定参与","你压住所有情绪"]},
+  "404":{"pool":["信徒","旅行青蛙","执事"],"texts":["你消失但也曾认真","你离开变成习惯","你曾经也很负责"]},
+  "魅魔":{"pool":["旅行青蛙","操盘手","演员"],"texts":["你吸引但不停留","你不轻易被影响","你在无形中控制关系"]},
+  "NPC":{"pool":["信徒","植物","观察员"],"texts":["你在等被触发","你安静但持续存在","你更多在看别人"]},
+  "植物":{"pool":["豌豆公主","NPC","僧人"],"texts":["你安静但会受伤","你存在但不争","你习惯自我恢复"]},
+  "石头人":{"pool":["豌豆公主","演员","裁判"],"texts":["你麻木但曾敏感","你不表达但不代表没有","你压住所有情绪"]},
+  "闻鲜花冠军":{"pool":["404","操盘手","大狗狗是狼"],"texts":["你向前但不回头","你行动快但有判断","你冲但也在占有"]},
+  "观察员":{"pool":["操盘手","道长","NPC"],"texts":["你看但也在分析","你不说但全都明白","你在场但不参与"]}
+};
+
+// ========== 状态 ==========
+let currentQuestion = 0;
+let answers = [];
+let userDims = {};
+let currentResult = null;
+
+// ========== 分数计算（新逻辑）==========
+let rawScores = {};
+
+function calculateScores() {
+    rawScores = {F:0, T:0, H:0, G:0, L:0, C:0, S:0, B:0};
+    QUESTIONS.forEach((q, qIdx) => {
+        const ansIdx = answers[qIdx];
+        if (ansIdx === null || ansIdx === undefined) return;
+        const s = q.scores[ansIdx];
+        if (!s) return;
+        Object.entries(s).forEach(([k, v]) => { rawScores[k] = (rawScores[k]||0) + v; });
+    });
+    return rawScores;
+}
+
+function getLevel(score) {
+    if (score >= 3) return "高";
+    if (score <= -3) return "低";
+    return "中";
+}
+
+// 计算每个维度的理论最大/最小可能得分（按题统计）
+function calcDimensionRanges() {
+  const dims = Object.keys(DIM_NAMES);
+  const maxPos = {}; dims.forEach(k=>maxPos[k]=0);
+  const maxNeg = {}; dims.forEach(k=>maxNeg[k]=0);
+  QUESTIONS.forEach(q => {
+    dims.forEach(dim => {
+      let best = 0, worst = 0;
+      q.scores.forEach(s => {
+        if (s[dim] !== undefined) {
+          if (s[dim] > best) best = s[dim];
+          if (s[dim] < worst) worst = s[dim];
+        }
+      });
+      maxPos[dim] += best;
+      maxNeg[dim] += worst;
+    });
+  });
+  return {maxPos, maxNeg};
+}
+
+const DIM_RANGES = calcDimensionRanges();
+
+// 按各维度实际范围归一化到 -100~+100
+function normalizeRawScores(){
+  const {maxPos, maxNeg} = DIM_RANGES; // 用预计算的范围
+  Object.keys(rawScores).forEach(k=>{
+    const score = rawScores[k];
+    let normalized;
+    if (score >= 0) {
+      normalized = maxPos[k] > 0 ? Math.round(score / maxPos[k] * 100) : 0;
+    } else {
+      normalized = maxNeg[k] < 0 ? Math.round(score / Math.abs(maxNeg[k]) * 100) : 0;
+    }
+    userDims[k] = Math.max(-100, Math.min(100, normalized));
+  });
+}
+
+// 将 -100~+100 转换为 0~100 用于雷达图
+function getRadarDims(){
+  const radar = {};
+  Object.keys(userDims).forEach(k=>{
+    radar[k] = Math.round((userDims[k] + 100) / 2); // -100→0, 0→50, +100→100
+  });
+  return radar;
+}
+
+// 生成八边形雷达图SVG
+function createRadarSVG(labels, values, colors){
+  const size = 220;
+  const cx = size / 2;
+  const cy = size / 2;
+  const maxRadius = 85;
+  const n = labels.length;
+  const angleStep = (2 * Math.PI) / n;
+  const startAngle = -Math.PI / 2; // 从顶部开始
+
+  // 计算每个点的位置
+  const getPoint = (value, i) => {
+    const angle = startAngle + i * angleStep;
+    const r = (value / 100) * maxRadius;
+    return {
+      x: cx + r * Math.cos(angle),
+      y: cy + r * Math.sin(angle)
+    };
+  };
+
+  // 创建SVG
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttribute("viewBox", `0 0 ${size} ${size}`);
+  svg.setAttribute("width", size);
+  svg.setAttribute("height", size);
+
+  // 背景层
+  let bg = `<circle cx="${cx}" cy="${cy}" r="${maxRadius}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+  bg += `<circle cx="${cx}" cy="${cy}" r="${maxRadius*0.75}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+  bg += `<circle cx="${cx}" cy="${cy}" r="${maxRadius*0.5}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+  bg += `<circle cx="${cx}" cy="${cy}" r="${maxRadius*0.25}" fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+
+  // 网格线（8个方向）
+  for(let i=0; i<n; i++){
+    const p = getPoint(100, i);
+    bg += `<line x1="${cx}" y1="${cy}" x2="${p.x}" y2="${p.y}" stroke="rgba(255,255,255,0.05)" stroke-width="1"/>`;
+  }
+
+  svg.innerHTML = bg;
+
+  // 数据区域（渐变填充）
+  const dataPoints = values.map((v,i)=>getPoint(v,i));
+  const dataPath = dataPoints.map((p,i)=>(i===0?"M":"L")+`${p.x},${p.y}`).join("")+"Z";
+
+  // 渐变定义
+  const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+  const gradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+  gradient.setAttribute("id", "radarGradient");
+  gradient.setAttribute("x1", "0%");
+  gradient.setAttribute("y1", "0%");
+  gradient.setAttribute("x2", "100%");
+  gradient.setAttribute("y2", "100%");
+  gradient.innerHTML = `
+    <stop offset="0%" style="stop-color:#5b7fff;stop-opacity:0.4"/>
+    <stop offset="100%" style="stop-color:#a78bfa;stop-opacity:0.4"/>
+  `;
+  defs.appendChild(gradient);
+  svg.appendChild(defs);
+
+  // 数据填充
+  const fillPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  fillPath.setAttribute("d", dataPath);
+  fillPath.setAttribute("fill", "url(#radarGradient)");
+  fillPath.setAttribute("stroke", "rgba(91,127,255,0.6)");
+  fillPath.setAttribute("stroke-width", "2");
+  svg.appendChild(fillPath);
+
+  // 数据点
+  dataPoints.forEach((p,i)=>{
+    const circle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circle.setAttribute("cx", p.x);
+    circle.setAttribute("cy", p.y);
+    circle.setAttribute("r", "4");
+    circle.setAttribute("fill", colors[i] || "#5b7fff");
+    circle.setAttribute("stroke", "#fff");
+    circle.setAttribute("stroke-width", "1.5");
+    svg.appendChild(circle);
+  });
+
+  // 标签
+  dataPoints.forEach((p,i)=>{
+    const labelPos = getPoint(115, i);
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", labelPos.x);
+    text.setAttribute("y", labelPos.y);
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    text.setAttribute("fill", colors[i] || "#8fa8ff");
+    text.setAttribute("font-size", "10");
+    text.setAttribute("font-weight", "500");
+    text.textContent = labels[i]; // 显示维度中文名
+    svg.appendChild(text);
+  });
+
+  return svg;
+}
+
+// ========== 人格判断（新逻辑，按优先级排好，无冲突）==========
+
+function getPersonality(scores) {
+    const levels = {};
+    Object.keys(scores).forEach(k => { levels[k] = getLevel(scores[k]); });
+    const {F, T, H, G, L, C, S, B} = levels;
+
+    // 🔴 第一优先级（极强特征）
+    if (B === "高" && F === "高" && S === "高" && C === "低" && H !== "高") return "主人";
+    if (G === "高" && T === "高" && H === "高" && S === "低" && L !== "低") return "豌豆公主";
+    if (H === "低" && T === "低" && F === "中") return "石头人";
+
+    // 🟠 第二优先级（F低系，从极端到普通）
+    if (F === "低" && G === "低" && T === "低" && B !== "低") return "僧人";
+    if (F === "低" && G === "低") return "旅行青蛙";
+    if (F === "低" && G === "中" && S === "低") return "NPC";
+
+    // 🟡 第三优先级（C高系，先操盘手再裁判）
+    if (C === "高" && F === "中" && L === "中"&& B === "中") return "操盘手";
+    if (C === "高" && H === "低" && F === "低") return "裁判";
+    if (S === "高" && C === "高" && F === "低") return "道长";
+
+    // 🟢 第四优先级（情感类，先投入→再幻想→再吸引）
+    if (G === "高" && S === "低" && T === "中") return "信徒";
+    if (H === "高" && L === "中" && C === "低") return "剧作家";
+    if (H === "高" && L === "高" && F === "中" && G !== "高" && B !== "高") return "魅魔";
+    if (G === "高" && F === "高" && L === "中" && B === "低") return "大狗狗是狼";
+
+    // 🔵 第五优先级（关系结构）
+    if (B === "低" && G === "中" && F === "低") return "执事";
+    if (B === "高" && H === "高" && G !== "高" && L !== "高") return "魔法猫咪";
+    if (S === "高" && B === "高") return "小姐/少爷";
+
+    // 🟣 第六优先级（状态型）
+    if (S === "低" && L === "高") return "演员";
+    if (L === "低" && B === "低") return "404";
+
+    // ⚪ 第七优先级（行为型）
+    if (F === "高" && L === "高"&& H === "低") return "闻鲜花冠军";
+
+    // 🟤 第八优先级（兜底三人组）
+    if (C === "高" && F === "低" && L !== "高" && G !== "高") return "观察员";
+
+    // 第九层：分数兜底
+    return fallbackAll(scores);
+}
+
+function fallbackAll(s) {
+    const list = [
+        // 🔴 第一优先级
+        {type:"主人", score: s.B + s.F + s.S},
+        {type:"豌豆公主", score: (s.G + s.T + s.H) * 0.9},
+        {type:"石头人", score: -s.H - s.T},
+        // 🟠 第二优先级（F低系）
+        {type:"僧人", score: -s.F - s.G - s.T + 5},
+        {type:"旅行青蛙", score: -s.F - s.G},
+        {type:"NPC", score: -Math.abs(s.F) - Math.abs(s.G) + 5},
+        // 🟡 第三优先级（C高系）
+        {type:"操盘手", score: s.C + s.F},
+        {type:"裁判", score: s.C - s.H},
+        {type:"道长", score: s.S + s.C},
+        // 🟢 第四优先级（情感类）
+        {type:"信徒", score: s.G - s.S},
+        {type:"剧作家", score: s.H - s.S - Math.abs(s.C)},
+        {type:"魅魔", score: s.H + s.L},
+        {type:"大狗狗是狼", score: s.G + s.F},
+        // 🔵 第五优先级（关系结构）
+        {type:"执事", score: -s.B + s.G},
+        {type:"魔法猫咪", score: -s.G + s.B},
+        {type:"小姐/少爷", score: s.S + s.B},
+        // 🟣 第六优先级（状态型）
+        {type:"演员", score: -s.S - s.L},
+        {type:"404", score: -s.L - s.B},
+        // ⚪ 第七优先级（行为型）
+        {type:"闻鲜花冠军", score: s.F + s.L - Math.abs(s.H)},
+        // 🟤 兜底三人组
+        {type:"观察员", score: s.C + s.L - Math.abs(s.F)},
+        {type:"植物", score: -Math.abs(s.C) - Math.abs(s.F)}
+    ];
+    list.sort((a, b) => b.score - a.score);
+    return list[0].type;
+}
+
+// 新版的 findPersonality（调用新逻辑）
+function findPersonality(){
+    const scores = calculateScores();
+    normalizeRawScores();
+    const mainName = getPersonality(scores);
+    const main = PERSONALITIES.find(p=>p.name===mainName);
+
+    // 在隐藏池里找分数最高的作为第二人格
+    let second = null;
+    let secondScore = -Infinity;
+    if (HIDDEN_POOL && HIDDEN_POOL[mainName]) {
+        const poolData = HIDDEN_POOL[mainName];
+        if (poolData && poolData.pool) {
+            poolData.pool.forEach(name => {
+                const tempScores = {...scores};
+                const score = getScoreInPool(name, tempScores);
+                if (score > secondScore) {
+                    secondScore = score;
+                    second = PERSONALITIES.find(p=>p.name===name);
+                }
+            });
+        }
+    }
+
+    // 计算一个综合分数用于显示
+    const displayScore = Object.values(scores).reduce((a,b)=>a+b, 0);
+    return {
+        main: main,
+        second: second,
+        score: Math.round(displayScore)
+    };
+}
+
+// 计算某个人格在 fallbackAll 里的分数
+function getScoreInPool(name, s) {
+    const list = [
+        {type:"主人", score: s.B + s.F + s.S},
+        {type:"豌豆公主", score: (s.G + s.T + s.H) * 0.9},
+        {type:"石头人", score: -s.H - s.T},
+        {type:"僧人", score: -s.F - s.G - s.T + 5},
+        {type:"旅行青蛙", score: -s.F - s.G},
+        {type:"NPC", score: -Math.abs(s.F) - Math.abs(s.G) + 5},
+        {type:"操盘手", score: s.C + s.F},
+        {type:"裁判", score: s.C - s.H},
+        {type:"道长", score: s.S + s.C},
+        {type:"信徒", score: s.G - s.S},
+        {type:"剧作家", score: s.H - s.S - Math.abs(s.C)},
+        {type:"魅魔", score: s.H + s.L},
+        {type:"大狗狗是狼", score: s.G + s.F},
+        {type:"执事", score: -s.B + s.G},
+        {type:"魔法猫咪", score: -s.G + s.B},
+        {type:"小姐/少爷", score: s.S + s.B},
+        {type:"演员", score: -s.S - s.L},
+        {type:"404", score: -s.L - s.B},
+        {type:"闻鲜花冠军", score: s.F + s.L - Math.abs(s.H)},
+        {type:"观察员", score: s.C + s.L - Math.abs(s.F)},
+        {type:"植物", score: -Math.abs(s.C) - Math.abs(s.F)}
+    ];
+    const found = list.find(item => item.type === name);
+    return found ? found.score : 0;
+}
+
+function getAvatar(p){
+  return IMG_BASE + p.img;
+}
+
+function saveRecord(p,score,second){
+  const records = JSON.parse(localStorage.getItem("mbti_records")||"[]");
+  records.unshift({
+    id:Date.now(),
+    name:p.name,
+    nick:p.nick,
+    img:p.img,
+    score,
+    dims:userDims, // 保存八维数据
+    secondName:second?second.name:null,
+    secondImg:second?second.img:null,
+    secondScore:second?second.score:null,
+    date:new Date().toLocaleString("zh-CN")
+  });
+  localStorage.setItem("mbti_records",JSON.stringify(records.slice(0,50)));
+  // 保存当前结果
+  localStorage.setItem("mbti_current",JSON.stringify({p,score,second,dims:userDims}));
+}
+
+// ========== 渲染 ==========
+function renderHome(p,score,second){
+  document.getElementById("resultTitle").textContent = p.name;
+  document.getElementById("resultEn").textContent = p.en || "";
+  document.getElementById("resultType").textContent = p.type;
+  document.getElementById("resultNick").textContent = p.nick;
+  document.getElementById("resultAvatar").src = getAvatar(p);
+  document.getElementById("resultAvatar").onerror = function(){console.warn('图片加载失败:', this.src); this.style.display='none';};
+  document.getElementById("resultDesc").textContent = p.desc;
+
+  // ① 标签
+  const tagsEl = document.getElementById("resultTags");
+  tagsEl.innerHTML = "";
+  p.tags.forEach(t=>{
+    const span = document.createElement("span");
+    span.className="tag";
+    span.textContent=t;
+    tagsEl.appendChild(span);
+  });
+
+  // 关系
+  const loveParts = p.love.split("；");
+  document.getElementById("loveText").textContent = loveParts[0]||p.love;
+  document.getElementById("trapText").textContent = loveParts[1]||"";
+
+  // 八维雷达图
+  const radar = getRadarDims();
+  const dimGrid = document.getElementById("dimGrid");
+  dimGrid.innerHTML = "";
+  // 雷达图SVG
+  const dimKeys = Object.keys(DIM_NAMES);
+  const radarValues = dimKeys.map(k=>radar[k]||50);
+  const radarLabels = dimKeys.map(k => DIM_SHORT_NAMES[k] || k);
+  const radarColors = dimKeys.map(k => DIM_COLORS[k] || "#5b7fff");
+  const svg = createRadarSVG(radarLabels, radarValues, radarColors);
+  const container = document.createElement("div");
+  container.className = "radar-container";
+  container.innerHTML = `<div class="radar-chart" id="radarChart"></div>`;
+  dimGrid.appendChild(container);
+  document.getElementById("radarChart").appendChild(svg);
+
+  // 双人格（第二人格文字描述）
+  const dualEl = document.getElementById("dualResult");
+  if(second && HIDDEN_POOL[p.name]){
+    dualEl.classList.remove("hidden");
+    const poolData = HIDDEN_POOL[p.name];
+    const secondIdx = poolData.pool.indexOf(second.name);
+    const text = secondIdx >= 0 ? `你是【${p.name}】但你内心其实很接近【${second.name}】${poolData.texts[secondIdx]}` : "";
+    document.getElementById("dualNames") && (document.getElementById("dualNames").textContent = text);
+    document.getElementById("dualScore") && (document.getElementById("dualScore").textContent = "");
+  } else {
+    dualEl.classList.add("hidden");
+  }
+
+  // 匹配度 & 概率
+  document.getElementById("matchValue").textContent = score + "分";
+  document.getElementById("probValue").textContent = "测试后查看";
+
+  // 灵魂爆点
+  document.getElementById("resultSoul").textContent = p.soul || "";
+
+  // 维度评分列表
+  renderDimScores();
+}
+
+function renderDimScores(){
+  const container = document.getElementById("dimScores");
+  container.innerHTML = "";
+  const dimKeys = Object.keys(DIM_NAMES);
+  dimKeys.forEach(k => {
+    const raw = rawScores[k] || 0;
+    const radarVal = (getRadarDims()[k]||50);
+    const isPos = raw >= 0;
+    const pct = isPos ? radarVal : (100 - radarVal);
+    const level = getLevel(raw);
+    const levelLabel = level === "高" ? "高" : level === "低" ? "低" : "中";
+    const text = DIM_TEXT[k]?.[levelLabel] || "";
+    // 在第二个句号后拆成两行，第二行加箭头
+    const firstDot = text.indexOf("。");
+    const secondDot = firstDot !== -1 ? text.indexOf("。", firstDot + 1) : -1;
+    let line1 = text, line2 = "";
+    if (secondDot !== -1) {
+      line1 = text.slice(0, secondDot + 1);
+      line2 = text.slice(secondDot + 1);
+    } else if (firstDot !== -1) {
+      line1 = text.slice(0, firstDot + 1);
+      line2 = text.slice(firstDot + 1);
+    }
+
+    const item = document.createElement("div");
+    item.className = "dim-score-item";
+    item.innerHTML = `
+      <div class="dim-score-top">
+        <span class="dim-score-name" style="color:${DIM_COLORS[k]}">${k} ${DIM_SHORT_NAMES[k]}</span>
+        <span class="dim-score-val ${isPos?'positive':'negative'}">${raw>0?'+':''}${raw}分</span>
+      </div>
+      <div class="dim-score-title">${levelLabel}（${raw>0?'+':''}${raw}）</div>
+      <div class="dim-score-text">${line1}</div>
+      <div class="dim-score-arrow">→ ${line2}</div>
+    `;
+    container.appendChild(item);
+  });
+}
+
+// 计算匹配概率（基于 fallbackAll 得分占比）
+function calcProbability(personality, scores){
+  if(!personality || !scores) return null;
+  const allScores = [
+    {type:"主人", score: scores.B + scores.F + scores.S},
+    {type:"豌豆公主", score: (scores.G + scores.T + scores.H) * 0.9},
+    {type:"石头人", score: -scores.H - scores.T},
+    {type:"僧人", score: -scores.F - scores.G - scores.T + 5},
+    {type:"旅行青蛙", score: -scores.F - scores.G},
+    {type:"NPC", score: -Math.abs(scores.F) - Math.abs(scores.G) + 5},
+    {type:"操盘手", score: scores.C + scores.F},
+    {type:"裁判", score: scores.C - scores.H},
+    {type:"道长", score: scores.S + scores.C},
+    {type:"信徒", score: scores.G - scores.S},
+    {type:"剧作家", score: scores.H - scores.S - Math.abs(scores.C)},
+    {type:"魅魔", score: scores.H + scores.L},
+    {type:"大狗狗是狼", score: scores.G + scores.F},
+    {type:"执事", score: -scores.B + scores.G},
+    {type:"魔法猫咪", score: -scores.G + scores.B},
+    {type:"小姐/少爷", score: scores.S + scores.B},
+    {type:"演员", score: -scores.S - scores.L},
+    {type:"404", score: -scores.L - scores.B},
+    {type:"闻鲜花冠军", score: scores.F + scores.L - Math.abs(scores.H)},
+    {type:"观察员", score: scores.C + scores.L - Math.abs(scores.F)},
+    {type:"植物", score: -Math.abs(scores.C) - Math.abs(scores.F)}
+  ];
+  const total = allScores.reduce((s, item) => s + Math.max(0, item.score), 0);
+  const self = allScores.find(item => item.type === personality.name);
+  if(!self || total === 0) return null;
+  return Math.round(Math.max(0, self.score) / total * 100) + "%";
+}
+
+function renderTest(){
+  const q = QUESTIONS[currentQuestion];
+  document.getElementById("testNum").textContent = `${currentQuestion+1}/${QUESTIONS.length}`;
+  document.getElementById("testTotal").textContent = QUESTIONS.length;
+  document.getElementById("testBarFill").style.width = ((currentQuestion)/QUESTIONS.length*100)+"%";
+  document.getElementById("testQuestion").textContent = q.q;
+  const optsEl = document.getElementById("testOptions");
+  optsEl.innerHTML = "";
+  q.opts.forEach((opt,i)=>{
+    const btn = document.createElement("button");
+    btn.className="test-option"+(answers[currentQuestion]===i?" selected":"");
+    btn.textContent=opt;
+    btn.onclick=()=>selectOption(i);
+    optsEl.appendChild(btn);
+  });
+  // 更新导航按钮状态
+  document.getElementById("prevBtn").disabled = currentQuestion === 0;
+  document.getElementById("nextBtn").disabled = currentQuestion === QUESTIONS.length - 1;
+}
+
+function selectOption(idx){
+  answers[currentQuestion]=idx;
+  // 显示选中状态
+  const buttons = document.querySelectorAll("#testOptions .test-option");
+  buttons.forEach((btn,i)=>{
+    if(i===idx) btn.classList.add("selected");
+    else btn.classList.remove("selected");
+  });
+  // 延迟后进入下一题或完成
+  setTimeout(()=>{
+    if(currentQuestion < QUESTIONS.length-1){
+      currentQuestion++;
+      renderTest();
+      document.getElementById("pageTest").scrollTop=0;
+    } else {
+      finishTest();
+    }
+  },300);
+}
+
+function prevQuestion(){
+  if(currentQuestion > 0){
+    currentQuestion--;
+    renderTest();
+    document.getElementById("pageTest").scrollTop=0;
+  }
+}
+
+function nextQuestion(){
+  if(currentQuestion < QUESTIONS.length - 1){
+    currentQuestion++;
+    renderTest();
+    document.getElementById("pageTest").scrollTop=0;
+  }
+}
+
+function finishTest(){
+  const result = findPersonality();
+  currentResult = result;
+  // 保存结果（容错：确保有主人格对象）
+  const mainPerson = result.main || PERSONALITIES[0];
+  saveRecord(mainPerson, result.score, result.second);
+
+  // 先切换到首页，避免渲染错误阻塞页面切换
+  try {
+    document.getElementById("pageTest").classList.add("hidden");
+    document.getElementById("pageHome").classList.remove("hidden");
+    document.getElementById("tabBar").style.display = "flex";
+    switchTab("home");
+  } catch (e) {
+    console.error('page switch error:', e);
+  }
+
+  // 渲染结果，出错时只记录错误，不静默回退
+  try {
+    renderHome(mainPerson, result.score, result.second);
+  } catch (e) {
+    console.error('renderHome error:', e);
+  }
+}
+
+function renderRecord(){
+  const records = JSON.parse(localStorage.getItem("mbti_records")||"[]");
+  const listEl = document.getElementById("recordList");
+  if(records.length===0){
+    listEl.innerHTML=`<div class="record-empty"><div class="record-empty-icon">📭</div><div>暂无测试记录</div><div style="font-size:12px;margin-top:4px">完成测试后会保存在这里</div></div>`;
+    return;
+  }
+  listEl.innerHTML="";
+  records.forEach(r=>{
+    const div = document.createElement("div");
+    div.className="record-item";
+    const name = r.secondName ? `${r.name} × ${r.secondName}` : r.name;
+    div.innerHTML=`
+      <img class="record-thumb" src="${IMG_BASE}${r.img}" onerror="this.src='data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 width=%2756%27 height=%2756%27%3E%3Crect fill=%27%2316162a%27 width=%2756%27 height=%2756%27/%3E%3C/svg%3E'">
+      <div class="record-info">
+        <div class="record-name">${name}</div>
+        <div class="record-date">${r.date}</div>
+      </div>
+      <div class="record-score">${r.score}分</div>`;
+    div.onclick=()=>loadRecordResult(r);
+    listEl.appendChild(div);
+  });
+}
+
+function loadRecordResult(r){
+  // 如果有保存的维度数据就用保存的，否则用随机
+  if(r.dims){
+    userDims = {...r.dims};
+  } else {
+    // 兜底：用随机生成
+    Object.keys(DIM_NAMES).forEach(k=>userDims[k]=Math.round((Math.random()-0.5)*200));
+  }
+  const p = PERSONALITIES.find(p=>p.name===r.name)||PERSONALITIES[0];
+  const result = findPersonality();
+  if(r.name!==result.main.name){
+    result.main=p;
+    result.second=r.secondName?PERSONALITIES.find(x=>x.name===r.secondName)||null:null;
+    result.score=r.score;
+    result.secondScore=r.secondScore;
+  }
+  currentResult=result;
+  renderHome(result.main,result.score,result.second);
+  switchTab("home");
+}
+
+function renderAlbum(){
+  const grid = document.getElementById("albumGrid");
+  grid.innerHTML="";
+  PERSONALITIES.forEach(p=>{
+    const div = document.createElement("div");
+    div.className="album-item";
+    div.innerHTML=`
+      <img class="album-img" src="${getAvatar(p)}" onerror="this.style.display='none'">
+      <div class="album-info">
+        <div class="album-id">NO.${String(p.id).padStart(2,'0')}</div>
+        <div class="album-cn-name">${p.name}</div>
+        <div class="album-en-name">${p.en||''}</div>
+        <div class="album-type">${p.type}</div>
+        <div class="album-nick">${p.nick}</div>
+      </div>`;
+    div.onclick=()=>showPersonalityDetail(p);
+    grid.appendChild(div);
+  });
+}
+
+function showPersonalityDetail(p){
+  document.getElementById("psAvatar").src=getAvatar(p);
+  document.getElementById("psName").textContent=p.name + (p.en?" ("+p.en+")":"");
+  document.getElementById("psNick").textContent=p.nick;
+  document.getElementById("psType").textContent=p.type;
+  document.getElementById("psDesc").textContent=p.desc;
+  const loveParts=p.love.split("；");
+  document.getElementById("psRelation").innerHTML=
+    `<div style="color:#8fa8ff;font-size:11px;margin-bottom:4px">💕 你会爱上</div>${loveParts[0]||""}`+
+    (loveParts[1]?`<div style="color:#8fa8ff;font-size:11px;margin-top:8px;margin-bottom:4px">🎯 谁会栽在你手里</div>${loveParts[1]}`:"");
+  document.getElementById("personalityPopup").classList.remove("hidden");
+}
+
+function closePersonalityPopup(){
+  document.getElementById("personalityPopup").classList.add("hidden");
+}
+
+// ========== 页面控制 ==========
+function switchTab(tab){
+  ["home","record","album"].forEach(t=>{
+    document.getElementById("page"+t.charAt(0).toUpperCase()+t.slice(1)).classList.toggle("hidden",t!==tab);
+  });
+  document.querySelectorAll(".tab-item").forEach(el=>{
+    el.classList.toggle("active",el.dataset.tab===tab);
+  });
+  document.getElementById("tabBar").style.display="flex";
+  if(tab==="record") renderRecord();
+  if(tab==="album") renderAlbum();
+}
+
+function startTest(){
+  document.getElementById("popupOverlay").classList.add("hidden");
+  currentQuestion=0;
+  answers=new Array(QUESTIONS.length).fill(null);
+  // 手动隐藏所有页面，只显示测试页
+  ["pageHome","pageTest","pageRecord","pageAlbum"].forEach(id=>{
+    document.getElementById(id).classList.add("hidden");
+  });
+  document.getElementById("pageTest").classList.remove("hidden");
+  // 隐藏底部导航在测试页
+  document.getElementById("tabBar").style.display="none";
+  renderTest();
+}
+
+function retest(){
+  document.getElementById("popupOverlay").classList.remove("hidden");
+}
+
+// 分享成长图
+function shareCard(){
+  const btn = document.querySelector('.action-area .btn-outline');
+  btn.textContent = "⏳ 生成中...";
+  btn.disabled = true;
+
+  const target = document.querySelector(".home-inner");
+  // 克隆节点，避免影响页面交互
+  const clone = target.cloneNode(true);
+  clone.style.backgroundColor = "#0d0d14";
+  clone.style.borderRadius = "20px";
+  clone.style.padding = "20px";
+  clone.style.width = "400px";
+
+  // html2canvas 直接截原节点
+  if(typeof html2canvas !== "undefined"){
+    html2canvas(target, {
+      backgroundColor: "#0d0d14",
+      scale: 2,
+      useCORS: true,
+      allowTaint: false,
+      logging: false
+    }).then(canvas => {
+      const link = document.createElement("a");
+      link.download = "人格图鉴_成长图.png";
+      link.href = canvas.toDataURL("image/png");
+      link.click();
+      btn.textContent = "📸 分享图片";
+      btn.disabled = false;
+    }).catch(() => {
+      fallbackShare();
+      btn.textContent = "📸 分享图片";
+      btn.disabled = false;
+    });
+  } else {
+    fallbackShare();
+    btn.textContent = "📸 分享图片";
+    btn.disabled = false;
+  }
+}
+
+function fallbackShare(){
+  // html2canvas 未加载时提示长按保存
+  alert("长按页面截图保存，即可分享你的人格图片 ✨");
+}
+
+function skipToHome(){
+  // 用随机数据填充，方便测试UI
+  document.getElementById("popupOverlay").classList.add("hidden");
+  ["pageHome","pageTest","pageRecord","pageAlbum"].forEach(id=>{
+    document.getElementById(id).classList.add("hidden");
+  });
+  document.getElementById("pageHome").classList.remove("hidden");
+  document.getElementById("tabBar").style.display="flex";
+
+  // 随机生成一个人格结果用于UI预览
+  const randomIdx = Math.floor(Math.random() * PERSONALITIES.length);
+  const p = PERSONALITIES[randomIdx];
+  // 随机生成八维数据
+  Object.keys(DIM_NAMES).forEach(k => {
+    userDims[k] = Math.round((Math.random()-0.5)*200);
+  });
+  renderHome(p, Math.round(Math.random()*100), null);
+  switchTab("home");
+}
+
+function showRecord(){switchTab("record");}
+function showAlbum(){switchTab("album");}
+
+// 题目打乱函数（暂不调用，等完成版手动启用）
+function shuffleQuestions(){
+  for(let i = QUESTIONS.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [QUESTIONS[i], QUESTIONS[j]] = [QUESTIONS[j], QUESTIONS[i]];
+  }
+}
+// 使用：取消下面这行的注释即可打乱题目顺序
+// shuffleQuestions();
+
+// ========== 初始化 ==========
+// 清缓存用 localStorage.removeItem("mbti_current");
+function init(){
+  try{
+    // 检查是否有存档
+    const saved = localStorage.getItem("mbti_current");
+    if(saved){
+      try{
+        const data = JSON.parse(saved);
+        // 恢复保存的八维数据
+        userDims = data.dims || {};
+        Object.keys(DIM_NAMES).forEach(k=>{
+          if(userDims[k] === undefined) userDims[k]=0;
+        });
+        currentResult=data;
+        renderHome(data.p,data.score,data.second);
+        document.getElementById("pageHome").classList.remove("hidden");
+        switchTab("home");
+      } catch(e){
+        showPopup();
+      }
+    } else {
+      showPopup();
+    }
+  } catch(e){
+    console.error("init error:",e);
+    showPopup();
+  }
+  document.getElementById("loadingOverlay").classList.add("hidden");
+}
+
+function showPopup(){
+  document.getElementById("popupOverlay").classList.remove("hidden");
+}
+
+// 超时兜底：如果3秒还没隐藏loading就强制隐藏
+setTimeout(()=>{
+  const el = document.getElementById("loadingOverlay");
+  if(el && !el.classList.contains("hidden")){
+    el.classList.add("hidden");
+  }
+},3000);
+
+window.onload=init;
+</script>
+</body>
+</html>
